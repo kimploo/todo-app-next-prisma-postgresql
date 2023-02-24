@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  username String
+  profile  String
+  Posts    Post[] @relation("Posts")
+  Likes    Like[] @relation("Likes")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  author    User     @relation("Posts", fields: [userId], references: [id])
+  userId    String
+  title     String
+  whoLikes  Like[]   @relation("Post")
+  createdAt DateTime @default(now())
+}
+
+model Like {
+  id      String  @id @default(uuid())
+  WhoLike User    @relation("Likes", fields: [userId], references: [id])
+  userId  String
+  Post    Post?   @relation("Post", fields: [postId], references: [id])
+  postId  String?
+}
