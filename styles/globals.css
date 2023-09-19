@@ -2,8 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  width: 100vw;
-  height: 100vh;
-  background: white;
+html, body {
+  max-width: 768px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }

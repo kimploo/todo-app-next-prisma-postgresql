@@ -1,10 +1,10 @@
 import React from "react";
-import { useQuery } from "react-query";
-import Images from "../Images/Images";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { useSession } from "next-auth/react";
-import { PostsApi } from "@/types/types";
 import { AnimatePresence, motion } from "framer-motion";
+import useSWR from "swr";
+import { PostRes } from "@/types/types";
+import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
 
 const eachListVariant = {
   visible: {
@@ -19,7 +19,6 @@ const eachListVariant = {
     },
   },
   hidden: {
-    y: -100,
     height: 0,
     opacity: 0,
   },
@@ -28,111 +27,111 @@ const eachListVariant = {
     opacity: 0,
   },
 };
-
-const getPosts = async () => {
-  try {
-    const res = await fetch("/api/post");
-    const data = await res.json();
-
-    const parseResult = PostsApi.safeParse(data);
-
-    if (!parseResult.success) throw new Error(parseResult.error.message);
-
-    return parseResult.data;
-  } catch (e) {
-    throw new Error("Error When Try To Fetch..");
-  }
-};
-
 const Card = () => {
   const { data: session } = useSession();
-  const {
-    data: posts,
-    isLoading,
-    refetch,
-    isError,
-  } = useQuery("posts", getPosts);
+  const userId = session?.user.id
 
+  const getPosts = (url: string) => {
+    if (!userId) { toast.error('Please log in'); return; }
+    return fetch(url)
+      .then(res => res.json())
+      .then(json => {
+        const res = PostRes.parse(json)
+        return res
+      })
+      .catch(e => {
+        toast.error(e)
+      })
+  };
+  const { data: oneUserPosts, error, isLoading, mutate } = useSWR([`/api/post?userId=${userId}`], getPosts)
+  
   const findId = (whoLikes: Array<{ userId: string }>) => {
     return whoLikes.find((like) => like.userId === session?.user.id);
   };
 
   const handleLike = async (postId: string) => {
-    try {
-      const res = await fetch("/api/like", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: session?.user.id, postId }),
-      });
-
-      if (res.ok) {
-        refetch();
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    return;
+    return fetch("/api/like", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: session?.user.id, postId }),
+    }).then(_ => {
+      mutate()
+    }).catch(e => {
+      toast.error(e)
+    });
   };
 
-  if (isError) {
+  if (error) {
     return (
-      <p className="text-sm text-center text-stone-500 m-2">
-        Ouch there is something wrong 🤖
-      </p>
+      <section className="w-full mt-4">
+        <p className="text-stone-500 dark:text-stone-200">
+          Ouch there is something wrong 🤖
+        </p>
+      </section>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex justify-center mt-2">
-        <progress className="progress w-56"></progress>
-      </div>
+      <section className="w-full mt-4">
+        <div className="flex justify-center mt-2">
+          <progress className="progress w-56"></progress>
+        </div>
+      </section>
     );
   }
 
-  if (!posts?.posts.length) {
+  if (!oneUserPosts) {
+    return <section className="w-full mt-4">
+      <p className="text-stone-500 dark:text-stone-200">
+        no post
+      </p>
+    </section>
+  }
+
+  if (!oneUserPosts?.Posts.length) {
     return (
-      <p className="text-center text-neutral-600 mt-3">There is no post 🥲</p>
+      <section className="w-full mt-4">
+        <p className="text-stone-500 dark:text-stone-200">
+          no post
+        </p>
+      </section>
     );
   }
 
   return (
-    <main className="mt-3">
-      <AnimatePresence>
-        {posts?.posts.map((post, i) => (
-          <motion.section
-            variants={eachListVariant}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="bg-stone-200 p-2 w-screen h-32"
-            key={i}
-          >
-            <div className="flex items-center gap-2">
-              <Images src={post.author.profile} width={40} height={40} />
-              <p className="text-sm text-stone-700">{post.author.username}</p>
-            </div>
-            <div>
-              <p className="text-stone-700 pl-12">{post.title}</p>
-            </div>
-            <div
-              onClick={() => handleLike(post.id)}
-              className="text-stone-600 hover:opacity-75 transition-[200ms] pl-12 mt-3"
-            >
-              {!findId(post.whoLikes) ? (
-                <AiOutlineHeart size={25} />
-              ) : (
-                <AiFillHeart size={25} />
-              )}
-              {post.whoLikes.length > 0 && <p>{post.whoLikes.length}</p>}
-            </div>
-          </motion.section>
-        ))}
-      </AnimatePresence>
-    </main>
+    <AnimatePresence>
+      <motion.section
+        variants={eachListVariant}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="overflow-auto px-16 p mt-4 w-full"
+      >
+        <section className="mt-4">
+          {oneUserPosts?.Posts.map((post) => (
+            <article key={post.id} className="flex flex-row justify-between">
+              <div>
+                <p className="text-stone-500 dark:text-stone-200">{post.title}</p>
+              </div>
+              <div
+                onClick={() => handleLike(post.id)}
+                className="flex flex-row text-stone-500 dark:text-stone-200 hover:opacity-50 transition-[100ms]"
+              >
+                {post.whoLikes.length > 0 && <p>{post.whoLikes.length}</p>}
+                {!findId(post.whoLikes) ? (
+                  <AiOutlineHeart size={25} />
+                ) : (
+                  <AiFillHeart size={25} />
+                )}
+              </div>
+            </article>
+          ))}
+        </section>
+      </motion.section>
+    </AnimatePresence>
   );
 };
 

@@ -1,5 +1,5 @@
 import NextAuth from "next-auth/next";
-import GithubProvider from "next-auth/providers/google";
+import GithubProvider from "next-auth/providers/github";
 import prisma from "@prisma";
 import { NextAuthOptions } from "next-auth";
 
@@ -37,10 +37,8 @@ const NextOption: NextAuthOptions = {
     session({ session, token }) {
       if (!session.user.id) {
         session.user.id = token.sub;
-
         return session;
       }
-
       return session;
     },
   },
