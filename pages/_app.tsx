@@ -15,9 +15,9 @@ export default function App({
 }: AppProps) {
   return (
     <SessionProvider session={session}>
-        <main className={poppins.className}>
-          <Component {...pageProps} />
-        </main>
+      <main className={poppins.className}>
+        <Component {...pageProps} />
+      </main>
     </SessionProvider>
   );
 }

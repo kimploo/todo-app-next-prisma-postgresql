@@ -11,9 +11,11 @@ export const PostRes = z.object({
       userId: z.string(),
       title: z.string(),
       createdAt: z.string(),
-      whoLikes: z.array(z.object({
-        userId: z.string()
-      }))
-    })
-  )
-})
+      whoLikes: z.array(
+        z.object({
+          userId: z.string(),
+        }),
+      ),
+    }),
+  ),
+});

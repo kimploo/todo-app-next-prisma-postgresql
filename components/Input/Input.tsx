@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { BiPaperPlane } from "react-icons/bi";
-import useSWRMutation from 'swr/mutation'
+import useSWRMutation from "swr/mutation";
 import { toast } from "react-toastify";
 
 const Input = () => {
@@ -10,7 +10,7 @@ const Input = () => {
 
   const createPost = () => {
     if (!title) {
-      return toast.error('Write TODO first to post')
+      return toast.error("Write TODO first to post");
     }
 
     fetch("/api/post", {
@@ -22,13 +22,15 @@ const Input = () => {
         title,
         id: session?.user.id!,
       }),
-    }).then((res) => {
-      toast.success('Successfully post TODO')
-    }).catch(e => {
-      toast.error(`Error: ${e}`)
     })
-  }
-  const { trigger } = useSWRMutation('/api/user', createPost)
+      .then((res) => {
+        toast.success("Successfully post TODO");
+      })
+      .catch((e) => {
+        toast.error(`Error: ${e}`);
+      });
+  };
+  const { trigger } = useSWRMutation("/api/user", createPost);
 
   return (
     <section className="flex flex-row justify-center items-center h-24 mt-4 px-8">

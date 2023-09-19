@@ -29,22 +29,30 @@ const eachListVariant = {
 };
 const Card = () => {
   const { data: session } = useSession();
-  const userId = session?.user.id
+  const userId = session?.user.id;
 
   const getPosts = (url: string) => {
-    if (!userId) { toast.error('Please log in'); return; }
+    if (!userId) {
+      toast.error("Please log in");
+      return;
+    }
     return fetch(url)
-      .then(res => res.json())
-      .then(json => {
-        const res = PostRes.parse(json)
-        return res
+      .then((res) => res.json())
+      .then((json) => {
+        const res = PostRes.parse(json);
+        return res;
       })
-      .catch(e => {
-        toast.error(e)
-      })
+      .catch((e) => {
+        toast.error(e);
+      });
   };
-  const { data: oneUserPosts, error, isLoading, mutate } = useSWR([`/api/post?userId=${userId}`], getPosts)
-  
+  const {
+    data: oneUserPosts,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR([`/api/post?userId=${userId}`], getPosts);
+
   const findId = (whoLikes: Array<{ userId: string }>) => {
     return whoLikes.find((like) => like.userId === session?.user.id);
   };
@@ -56,11 +64,13 @@ const Card = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ userId: session?.user.id, postId }),
-    }).then(_ => {
-      mutate()
-    }).catch(e => {
-      toast.error(e)
-    });
+    })
+      .then((_) => {
+        mutate();
+      })
+      .catch((e) => {
+        toast.error(e);
+      });
   };
 
   if (error) {
@@ -84,19 +94,17 @@ const Card = () => {
   }
 
   if (!oneUserPosts) {
-    return <section className="w-full mt-4">
-      <p className="text-stone-500 dark:text-stone-200">
-        no post
-      </p>
-    </section>
+    return (
+      <section className="w-full mt-4">
+        <p className="text-stone-500 dark:text-stone-200">no post</p>
+      </section>
+    );
   }
 
   if (!oneUserPosts?.Posts.length) {
     return (
       <section className="w-full mt-4">
-        <p className="text-stone-500 dark:text-stone-200">
-          no post
-        </p>
+        <p className="text-stone-500 dark:text-stone-200">no post</p>
       </section>
     );
   }
@@ -114,7 +122,9 @@ const Card = () => {
           {oneUserPosts?.Posts.map((post) => (
             <article key={post.id} className="flex flex-row justify-between">
               <div>
-                <p className="text-stone-500 dark:text-stone-200">{post.title}</p>
+                <p className="text-stone-500 dark:text-stone-200">
+                  {post.title}
+                </p>
               </div>
               <div
                 onClick={() => handleLike(post.id)}

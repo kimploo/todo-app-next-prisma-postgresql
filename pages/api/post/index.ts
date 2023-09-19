@@ -21,7 +21,8 @@ const PostHandler: NextApiHandler = async (req, res) => {
     // TODO: Type Narrowing
     const { userId } = req.query;
     if (!userId) return res.status(404).json({ msg: "User Not Found" });
-    if (Array.isArray(userId)) return res.status(400).json({ msg: "Bad Request" });
+    if (Array.isArray(userId))
+      return res.status(400).json({ msg: "Bad Request" });
 
     // TODO: & 연산자 학습
     const oneUserPosts = await prisma.user.findUnique({
@@ -31,19 +32,20 @@ const PostHandler: NextApiHandler = async (req, res) => {
           include: {
             whoLikes: {
               select: {
-                userId: true
-              }
-            }
-          }
+                userId: true,
+              },
+            },
+          },
         },
       },
     });
-    
-    if (!oneUserPosts) return res.status(404).json({ msg: "Cannot Found Post" });
+
+    if (!oneUserPosts)
+      return res.status(404).json({ msg: "Cannot Found Post" });
     return res.json(oneUserPosts);
   }
-  
-  // TODO: Delete Post  
+
+  // TODO: Delete Post
 };
 
 export default PostHandler;

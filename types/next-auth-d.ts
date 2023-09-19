@@ -3,10 +3,10 @@ import type { DefaultSession } from "next-auth";
 
 type myUserType = {
   id: string | null | undefined;
-} & DefaultSession['user']
+} & DefaultSession["user"];
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
-    user: myUserType
+    user: myUserType;
   }
 }

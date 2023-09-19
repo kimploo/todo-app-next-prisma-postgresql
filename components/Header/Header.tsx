@@ -16,17 +16,18 @@ const Header = () => {
             width={60}
           />
           <div>
-            <p className="text-stone-600 dark:text-stone-200 text-sm">Sign in as</p>
+            <p className="text-stone-600 dark:text-stone-200 text-sm">
+              Sign in as
+            </p>
             <h4 className="font-[500] text-stone-700 dark:text-stone-200">
               {!session?.user.name ? "Unknown" : session.user.name}
             </h4>
           </div>
         </section>
         <button
-          onClick={() =>
-            { 
-              status === "unauthenticated" ? signIn("github") : signOut() }
-          }
+          onClick={() => {
+            status === "unauthenticated" ? signIn("github") : signOut();
+          }}
           className="bg-stone-700 text-stone-50 hover:bg-stone-600 transition-[200ms] rounded-xl p-3"
         >
           {status !== "unauthenticated" ? (
