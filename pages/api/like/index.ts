@@ -1,9 +1,10 @@
 import { NextApiHandler } from "next";
 import prisma from "@prisma";
 
+// TODO: NextApiHandler 타입 지정이 없다면?
 const LikeHandler: NextApiHandler = async (req, res) => {
   if (req.method === "POST") {
-    const { userId, postId } = req.body as { userId: string; postId: string };
+    const { userId, postId } = req.body;
 
     const finded = await prisma.like.findFirst({ where: { postId, userId } });
 

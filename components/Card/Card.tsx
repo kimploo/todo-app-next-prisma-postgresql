@@ -1,10 +1,9 @@
 import React from "react";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { AnimatePresence, motion } from "framer-motion";
-import useSWR from "swr";
-import { PostRes } from "@/types/types";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
+import { useGetPosts } from "@/lib/swr/post";
 
 const eachListVariant = {
   visible: {
@@ -30,31 +29,10 @@ const eachListVariant = {
 const Card = () => {
   const { data: session } = useSession();
   const userId = session?.user.id;
-
-  const getPosts = (url: string) => {
-    if (!userId) {
-      toast.error("Please log in");
-      return;
-    }
-    return fetch(url)
-      .then((res) => res.json())
-      .then((json) => {
-        const res = PostRes.parse(json);
-        return res;
-      })
-      .catch((e) => {
-        toast.error(e);
-      });
-  };
-  const {
-    data: oneUserPosts,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR([`/api/post?userId=${userId}`], getPosts);
+  const { oneUserPosts, isError, isLoading, mutate } = useGetPosts()
 
   const findId = (whoLikes: Array<{ userId: string }>) => {
-    return whoLikes.find((like) => like.userId === session?.user.id);
+    return whoLikes.find((like) => like.userId === userId);
   };
 
   const handleLike = async (postId: string) => {
@@ -73,9 +51,9 @@ const Card = () => {
       });
   };
 
-  if (error) {
+  if (isError) {
     return (
-      <section className="w-full mt-4">
+      <section className="w-full mt-4 px-20">
         <p className="text-stone-500 dark:text-stone-200">
           Ouch there is something wrong 🤖
         </p>
@@ -85,7 +63,7 @@ const Card = () => {
 
   if (isLoading) {
     return (
-      <section className="w-full mt-4">
+      <section className="w-full mt-4 px-20">
         <div className="flex justify-center mt-2">
           <progress className="progress w-56"></progress>
         </div>
@@ -95,7 +73,7 @@ const Card = () => {
 
   if (!oneUserPosts) {
     return (
-      <section className="w-full mt-4">
+      <section className="w-full mt-4 px-20">
         <p className="text-stone-500 dark:text-stone-200">no post</p>
       </section>
     );
@@ -103,7 +81,7 @@ const Card = () => {
 
   if (!oneUserPosts?.Posts.length) {
     return (
-      <section className="w-full mt-4">
+      <section className="w-full mt-4 px-20">
         <p className="text-stone-500 dark:text-stone-200">no post</p>
       </section>
     );
@@ -116,7 +94,7 @@ const Card = () => {
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="overflow-auto px-16 p mt-4 w-full"
+        className="overflow-auto mt-4 w-full px-20"
       >
         <section className="mt-4">
           {oneUserPosts?.Posts.map((post) => (

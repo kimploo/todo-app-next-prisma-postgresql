@@ -3,7 +3,7 @@ import prisma from "@prisma";
 
 const PostHandler: NextApiHandler = async (req, res) => {
   if (req.method === "POST") {
-    const { title, id } = req.body as { title: string; id: string };
+    const { title, id } = req.body;
     await prisma.post.create({
       data: {
         title,
@@ -21,14 +21,16 @@ const PostHandler: NextApiHandler = async (req, res) => {
     // TODO: Type Narrowing
     const { userId } = req.query;
     if (!userId) return res.status(404).json({ msg: "User Not Found" });
-    if (Array.isArray(userId))
-      return res.status(400).json({ msg: "Bad Request" });
+    if (Array.isArray(userId)) return res.status(400).json({ msg: "Bad Request" });
 
     // TODO: & 연산자 학습
     const oneUserPosts = await prisma.user.findUnique({
       where: { id: userId },
       include: {
         Posts: {
+          orderBy: {
+            createdAt: 'desc'
+          },
           include: {
             whoLikes: {
               select: {

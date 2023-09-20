@@ -3,17 +3,24 @@ import { useState } from "react";
 import { BiPaperPlane } from "react-icons/bi";
 import useSWRMutation from "swr/mutation";
 import { toast } from "react-toastify";
+import { useSWRConfig } from "swr";
 
 const Input = () => {
   const { data: session } = useSession();
+  const userId = session?.user.id; 
+  const { mutate } = useSWRConfig() 
   const [title, setTitle] = useState("");
-
-  const createPost = () => {
+  
+  const createPost = (url: string) => {
     if (!title) {
       return toast.error("Write TODO first to post");
     }
+    
+    if (!userId) {
+      return toast.error("Please Login");
+    }
 
-    fetch("/api/post", {
+    fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,12 +32,13 @@ const Input = () => {
     })
       .then((res) => {
         toast.success("Successfully post TODO");
+        mutate([`/api/post`, `?userId=${userId}`])
       })
       .catch((e) => {
         toast.error(`Error: ${e}`);
       });
   };
-  const { trigger } = useSWRMutation("/api/user", createPost);
+  const { trigger } = useSWRMutation(["/api/post"], ([key]) => createPost(key));
 
   return (
     <section className="flex flex-row justify-center items-center h-24 mt-4 px-8">
